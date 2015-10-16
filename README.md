@@ -23,17 +23,13 @@ Activate plugins by editing entry\_points in setup.py.
 
 Remove a plugin from this list to disable it, and then run setup.py. 
 
-  sudo python setup.py install
+    sudo python setup.py install
 
-No need to restart server after that. 
+And reload wsgi server or bottle process.
 
 For testing you can do ``python setup.py develop`` to only build them locally.
 
 # TODO
 
   * Auto-generate entry\_points for plugins in setup.py
-
-## Links
-
-  * http://base-art.net/Articles/64/
-  * http://aroberge.blogspot.se/2008/12/plugins-part-6-setuptools-based.html
+  * Configurable log-level for both API and plugins
