@@ -1,6 +1,6 @@
 # Monitorscout.com ECS API
 
-Monitorscout has a Event Callback Server feature where alerts can be sent as HTTP GET requests to an external API. 
+Monitorscout.com has an Event Callback Server feature where alerts can be sent as HTTP GET requests to an external API. 
 
 This is an external API service to receive those alerts and process them. 
 
@@ -10,6 +10,8 @@ This is an external API service to receive those alerts and process them.
   * ecs\_local.cfg - overrides
 
 # Plugins
+
+Plugins do everything, the API feature is only to execute all the plugins in order. 
 
 See sample\_plugin or logging\_plugin for examples. 
 
