@@ -5,6 +5,11 @@ class SamplePlugin(object):
     configured in setup.py.
     """
 
+    """You can optionally specify a plugin name here that will be used in 
+    logging. If not available then the entry_point name will be used.
+    """
+    plugin_name = 'SamplePlugin'
+
     def __init__(self, config, logging, **kw):
         """The main plugin class configured as entry_point in setup.py must
         also have an __init__ method.
@@ -14,10 +19,10 @@ class SamplePlugin(object):
 
         The last keyword arguments are optional and not implemented yet.
         """
-        self.plugin_name = 'Sample'
+        raise NotImplementedError
 
     def run(self):
         """This method is run after each plugin is instantiated. It takes no
         arguments and should instead take class attributes set by __init__.
         """
-        return True
+        raise NotImplementedError
