@@ -27,6 +27,8 @@ Remove a plugin from this list to disable it, and then run setup.py.
 
 No need to restart server after that. 
 
+For testing you can do ``python setup.py develop`` to only build them locally.
+
 # TODO
 
   * Auto-generate entry\_points for plugins in setup.py
