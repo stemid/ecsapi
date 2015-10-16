@@ -20,7 +20,7 @@ config.read(['ecs_local.cfg', 'ecs_plugins.cfg'])
 
 # Setup logging
 formatter = Formatter(config.get('logging', 'log_format'))
-l = getLogger(__name__)
+l = getLogger('ecs')
 if config.get('logging', 'log_handler') == 'syslog':
     syslog_address = config.get('logging', 'syslog_address')
 
@@ -52,21 +52,36 @@ else:
     l.setLevel(WARN)
 
 
-@get('/ecs')
+@get(config.get('api', 'url_path'))
 def ecs():
     l.debug('Received callback from {client_ip}'.format(
         client_ip=request.remote_route[0]
     ))
 
     for entrypoint in pkg_resources.iter_entry_points('ecs.plugins'):
+        # Get plugin class and name from entrypoint
         plugin_class = entrypoint.load()
-        plugin_log = getLogger(entrypoint.name)
+        plugin_name = entrypoint.name
+
+        # Setup plugin log handler
+        plugin_log = getLogger('ecs_'+plugin_name)
         plugin_log.addHandler(h)
-        inst = plugin_class(
-            config,
-            plugin_log,
-            request=request
-        )
+        plugin_log.setLevel(DEBUG)
+
+        try:
+            inst = plugin_class(
+                config,
+                plugin_log,
+                request=request
+            )
+        except Exception as e:
+            l.error('Plugin {plugin} raised exception: {exception}'.format(
+                plugin=plugin_name,
+                exception=str(e)
+            ))
+            continue
+
+        # Run plugin
         inst.run()
 
 
