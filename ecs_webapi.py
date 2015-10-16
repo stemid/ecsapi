@@ -1,0 +1,80 @@
+# Web API for Monitorscout ECS (Event Callback Server)
+# by Stefan Midjich <swehack@gmail.com>
+
+try:
+    from configparser import RawConfigParser
+except ImportError:
+    from ConfigParser import RawConfigParser
+    pass
+
+from json import dumps as json_dumps
+from logging import Formatter, getLogger, DEBUG, WARN, INFO
+from logging.handlers import SysLogHandler, RotatingFileHandler
+
+import pkg_resources
+from bottle import get, post, route, run, default_app, debug, request
+
+config = RawConfigParser()
+config.readfp(open('ecs.cfg'))
+config.read(['ecs_local.cfg', 'ecs_plugins.cfg'])
+
+# Setup logging
+formatter = Formatter(config.get('logging', 'log_format'))
+l = getLogger(__name__)
+if config.get('logging', 'log_handler') == 'syslog':
+    syslog_address = config.get('logging', 'syslog_address')
+
+    if syslog_address.startswith('/'):
+        h = SysLogHandler(
+            address=syslog_address,
+            facility=SysLogHandler.LOG_LOCAL0
+        )
+    else:
+        h = SysLogHandler(
+            address=(
+                config.get('logging', 'syslog_address'),
+                config.get('logging', 'syslog_port')
+            ),
+            facility=SysLogHandler.LOG_LOCAL0
+        )
+else:
+    h = RotatingFileHandler(
+        config.get('logging', 'log_file'),
+        maxBytes=config.get('logging', 'log_max_bytes'),
+        backupCount=config.get('logging', 'log_max_copies')
+    )
+h.setFormatter(formatter)
+l.addHandler(h)
+
+if config.get('logging', 'log_debug'):
+    l.setLevel(DEBUG)
+else:
+    l.setLevel(WARN)
+
+
+@get('/ecs')
+def ecs():
+    l.debug('Received callback from {client_ip}'.format(
+        client_ip=request.remote_route[0]
+    ))
+
+    for entrypoint in pkg_resources.iter_entry_points('ecs.plugins'):
+        plugin_class = entrypoint.load()
+        plugin_log = getLogger(entrypoint.name)
+        plugin_log.addHandler(h)
+        inst = plugin_class(
+            config,
+            plugin_log,
+            request=request
+        )
+        inst.run()
+
+
+if __name__ == '__main__':
+    run(
+        host=config.get('api', 'host'),
+        port=config.get('api', 'port')
+    )
+    debug(config.get('logging', 'log_debug'))
+else:
+    application = default_app()
