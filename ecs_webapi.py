@@ -68,6 +68,7 @@ def ecs():
         plugin_log.addHandler(h)
         plugin_log.setLevel(DEBUG)
 
+        # Instantiate the class
         try:
             inst = plugin_class(
                 config,
