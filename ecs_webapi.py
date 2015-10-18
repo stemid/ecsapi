@@ -60,6 +60,9 @@ def ecs():
 
     for entrypoint in pkg_resources.iter_entry_points('ecs.plugins'):
         # Get plugin class and name from entrypoint
+        l.debug('Loading entry point {point}'.format(
+            point=entrypoint.name
+        ))
         plugin_class = entrypoint.load()
         plugin_name = entrypoint.name
 
@@ -83,7 +86,14 @@ def ecs():
             continue
 
         # Run plugin
-        inst.run()
+        try:
+            inst.run()
+        except Exception as e:
+            l.error('Plugin {plugin} raised exception: {exception}'.format(
+                plugin=plugin_name,
+                exception=str(e)
+            ))
+            continue
 
 
 if __name__ == '__main__':
