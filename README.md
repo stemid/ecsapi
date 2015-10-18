@@ -15,9 +15,10 @@ Plugins do everything, the API feature is only to execute all the plugins in ord
 
 See sample\_plugin or logging\_plugin for examples. 
 
-Activate plugins by editing entry\_points in setup.py. 
+Activate plugins by editing entry\_points in plugins.cfg.
 
     [ecs.plugins]
+    PluginName = plugin_dir:PluginClass
     SamplePlugin = sample_plugin:SamplePlugin
     LoggingPlugin = logging_plugin:LoggingPlugin
 
