@@ -16,7 +16,12 @@ from bottle import get, post, route, run, default_app, debug, request
 
 config = RawConfigParser()
 config.readfp(open('ecs.cfg'))
-config.read(['ecs_local.cfg', 'ecs_plugins.cfg'])
+config.read([
+    'ecs_local.cfg',
+    'ecs_plugins.cfg',
+    '/etc/ecs.cfg',
+    '/etc/ecs_plugins.cfg'
+])
 
 # Setup logging
 formatter = Formatter(config.get('logging', 'log_format'))
