@@ -73,7 +73,7 @@ class DispatchPlugin(object):
             # Process JSON list as input
             if self.config.get(self.plugin_name, 'input').startswith('[') \
                and self.config.get(self.plugin_name, 'input').endswith(']'):
-                input_lines = json.reads(self.config.get(self.plugin_name, 'input'))
+                input_lines = json.loads(self.config.get(self.plugin_name, 'input'))
 
                 for line in input_lines:
                     (stdout, stderr) = command.communicate(
