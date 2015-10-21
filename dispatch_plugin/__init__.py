@@ -16,7 +16,7 @@ class DispatchPlugin(object):
         request = self.request
 
         self.l.debug('Received request: {request_params}'.format(
-            request_params=request.params
+            request_params=request.params.keys()
         ))
 
         if not self.config.has_section(self.plugin_name):
