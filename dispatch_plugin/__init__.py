@@ -15,6 +15,10 @@ class DispatchPlugin(object):
     def run(self):
         request = self.request
 
+        self.l.debug('Received request: {request_params}'.format(
+            request_params=request.params
+        ))
+
         if not self.config.has_section(self.plugin_name):
             self.l.error('Must configure {plugin}'.format(
                 plugin=self.plugin_name
@@ -49,6 +53,10 @@ class DispatchPlugin(object):
         else:
             proc_stdin = subprocess.PIPE
 
+        self.l.debug('Executing command: {command}'.format(
+            command=command_args
+        ))
+
         command = subprocess.Popen(
             command_args,
             stdin=proc_stdin
@@ -58,6 +66,10 @@ class DispatchPlugin(object):
         if self.config.get(self.plugin_name, 'input') == 'False':
             (stdout, stderr) = command.communicate()
         else:
+            self.l.debug('Sending input to process: {input}'.format(
+                input=self.config.get(self.plugin_name, 'input')
+            ))
+
             # Process JSON list as input
             if self.config.get(self.plugin_name, 'input').startswith('[') \
                and self.config.get(self.plugin_name, 'input').endswith(']'):
