@@ -99,8 +99,6 @@ def ecs():
                 exception=str(e)
             ))
             continue
-    else:
-        l.debug('No plugins found')
 
 
 if __name__ == '__main__':
