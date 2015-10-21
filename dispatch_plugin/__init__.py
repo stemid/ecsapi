@@ -93,13 +93,12 @@ class DispatchPlugin(object):
                     )
 
                     if stderr:
-                        break
-                else:
-                    self.l.error(
-                        'Error in process communication: {stderr}'.format(
-                            stderr=stderr
+                        self.l.error(
+                            'Error in process communication: {stderr}'.format(
+                                stderr=stderr
+                            )
                         )
-                    )
+                        break
 
             else:
                 (stdout, stderr) = command.communicate(
