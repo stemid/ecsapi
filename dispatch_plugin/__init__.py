@@ -11,7 +11,6 @@ class DispatchPlugin(object):
         self.request = kw['request']
         self.plugin_name = self.l.name.lstrip('ecs_')
 
-    #def execute(path, **
     def run(self):
         request = self.request
 
@@ -74,31 +73,31 @@ class DispatchPlugin(object):
             if self.config.get(self.plugin_name, 'input').startswith('[') \
                and self.config.get(self.plugin_name, 'input').endswith(']'):
                 input_lines = json.loads(self.config.get(self.plugin_name, 'input'))
+                input_data = '\n'.join(input_lines)
 
-                for line in input_lines:
-                    (stdout, stderr) = command.communicate(
-                        line.format(
-                            status=request.params.get('status', ''),
-                            monitor=request.params.get('monitor', ''),
-                            organisation=request.params.get('oranisation', ''),
-                            alert_time_period_state=request.params.get(
-                                'alert_time_period_state',
-                                ''
-                            ),
-                            device=request.params.get('device', ''),
-                            device_hostname=request.params.get('device_hostname', ''),
-                            monitor_name=request.params.get('monitor_name', ''),
-                            monitor_type=request.params.get('monitor_type', '')
+                (stdout, stderr) = command.communicate(
+                    input_data.format(
+                        status=request.params.get('status', ''),
+                        monitor=request.params.get('monitor', ''),
+                        organisation=request.params.get('oranisation', ''),
+                        alert_time_period_state=request.params.get(
+                            'alert_time_period_state',
+                            ''
+                        ),
+                        device=request.params.get('device', ''),
+                        device_hostname=request.params.get('device_hostname', ''),
+                        monitor_name=request.params.get('monitor_name', ''),
+                        monitor_type=request.params.get('monitor_type', '')
+                    )
+                )
+
+                if stderr:
+                    self.l.error(
+                        'Error in process communication: {stderr}'.format(
+                            stderr=stderr
                         )
                     )
-
-                    if stderr:
-                        self.l.error(
-                            'Error in process communication: {stderr}'.format(
-                                stderr=stderr
-                            )
-                        )
-                        break
+                    break
 
             else:
                 (stdout, stderr) = command.communicate(
