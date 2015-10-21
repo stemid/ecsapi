@@ -1,4 +1,5 @@
 # Dispatch alerts to external executables.
+import json
 import subprocess
 
 class DispatchPlugin(object):
@@ -43,32 +44,70 @@ class DispatchPlugin(object):
                 )
             )
 
+        if self.config.get(self.plugin_name, 'input') == 'False':
+            proc_stdin = None
+        else:
+            proc_stdin = subprocess.PIPE
+
         command = subprocess.Popen(
-            command_args
+            command_args,
+            stdin=proc_stdin
         )
 
         # Handle process input
         if self.config.get(self.plugin_name, 'input') == 'False':
             (stdout, stderr) = command.communicate()
         else:
-            (stdout, stderr) = command.communicate(
-                self.config.get(self.plugin_name, 'input').format(
-                    status=request.params.get('status', ''),
-                    monitor=request.params.get('monitor', ''),
-                    organisation=request.params.get('oranisation', ''),
-                    alert_time_period_state=request.params.get(
-                        'alert_time_period_state',
-                        ''
-                    ),
-                    device=request.params.get('device', ''),
-                    device_hostname=request.params.get('device_hostname', ''),
-                    monitor_name=request.params.get('monitor_name', ''),
-                    monitor_type=request.params.get('monitor_type', '')
+            # Process JSON list as input
+            if self.config.get(self.plugin_name, 'input').startswith('[') \
+               and self.config.get(self.plugin_name, 'input').endswith(']'):
+                input_lines = json.reads(self.config.get(self.plugin_name, 'input'))
+
+                for line in input_lines:
+                    (stdout, stderr) = command.communicate(
+                        line.format(
+                            status=request.params.get('status', ''),
+                            monitor=request.params.get('monitor', ''),
+                            organisation=request.params.get('oranisation', ''),
+                            alert_time_period_state=request.params.get(
+                                'alert_time_period_state',
+                                ''
+                            ),
+                            device=request.params.get('device', ''),
+                            device_hostname=request.params.get('device_hostname', ''),
+                            monitor_name=request.params.get('monitor_name', ''),
+                            monitor_type=request.params.get('monitor_type', '')
+                        )
+                    )
+
+                    if stderr:
+                        break
+                else:
+                    self.l.error(
+                        'Error in process communication: {stderr}'.format(
+                            stderr=stderr
+                        )
+                    )
+
+            else:
+                (stdout, stderr) = command.communicate(
+                    self.config.get(self.plugin_name, 'input').format(
+                        status=request.params.get('status', ''),
+                        monitor=request.params.get('monitor', ''),
+                        organisation=request.params.get('oranisation', ''),
+                        alert_time_period_state=request.params.get(
+                            'alert_time_period_state',
+                            ''
+                        ),
+                        device=request.params.get('device', ''),
+                        device_hostname=request.params.get('device_hostname', ''),
+                        monitor_name=request.params.get('monitor_name', ''),
+                        monitor_type=request.params.get('monitor_type', '')
+                    )
                 )
-            )
 
         if stderr:
-            self.l.error('Command failed: {stderr}'.format(
+            self.l.error('Error in process communication: {stderr}'.format(
                 stderr=stderr
             ))
 
