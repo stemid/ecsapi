@@ -97,7 +97,6 @@ class DispatchPlugin(object):
                             stderr=stderr
                         )
                     )
-                    break
 
             else:
                 (stdout, stderr) = command.communicate(
