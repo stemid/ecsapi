@@ -33,6 +33,7 @@ class DispatchPlugin(object):
         for _cmd in _command_args:
             command_args.append(
                 _cmd.format(
+                    alert=request.params.get('alert', ''),
                     status=request.params.get('status', ''),
                     monitor=request.params.get('monitor', ''),
                     organisation=request.params.get('oranisation', ''),
