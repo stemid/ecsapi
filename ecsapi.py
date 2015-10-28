@@ -18,9 +18,7 @@ config = RawConfigParser()
 config.readfp(open('ecs.cfg'))
 config.read([
     'ecs_local.cfg',
-    'ecs_plugins.cfg',
-    '/etc/ecs.cfg',
-    '/etc/ecs_plugins.cfg'
+    '/etc/ecs.cfg'
 ])
 
 # Setup logging
