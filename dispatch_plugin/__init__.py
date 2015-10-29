@@ -84,18 +84,27 @@ class DispatchPlugin(object):
             ))
             raise NotImplementedError
 
-        self.l.debug(self.get_commands())
-        for command in self.get_commands():
-            if self.timeout:
-                timeout = self.timeout
-            else:
-                timeout = command['timeout']
+        alert = request.params.get('alert', '')
+        alert_time_period_state = request.params.get(
+            'alert_time_period_state',
+            ''
+        )
 
-            self.execute(
-                command['command'],
-                command['input'],
-                timeout
-            )
+        # Check if alert is in scheduled downtime state
+        if alert == alert_time_period_state and alert == 'DOWN':
+            self.l.debug('Alert is in a period of downtime')
+        else: # Otherwise execute dispatches
+            for command in self.get_commands():
+                if self.timeout:
+                    timeout = self.timeout
+                else:
+                    timeout = command['timeout']
+
+                self.execute(
+                    command['command'],
+                    command['input'],
+                    timeout
+                )
 
     def execute(self, command, input_data=False, timeout=False):
         request = self.request
