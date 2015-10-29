@@ -21,6 +21,7 @@ class DispatchPlugin(object):
         else:
             self.timeout = False
 
+    # Helper method to timeout command dispatches
     def _timeout_callback(self, p):
         if p.poll() is None:
             try:
@@ -32,6 +33,7 @@ class DispatchPlugin(object):
                 if e.errno != errno.ESRCH:
                     raise
 
+    # Helper method to extract commands and inputs from the configuration
     def get_commands(self):
         commands = []
         for key, item in self.config.items(self.plugin_name):
@@ -77,6 +79,7 @@ class DispatchPlugin(object):
 
         return commands
 
+    # run() is executed by plugin engine
     def run(self):
         request = self.request
 
@@ -86,7 +89,7 @@ class DispatchPlugin(object):
             ))
             raise NotImplementedError
 
-        alert = request.params.get('status', '')
+        alert = request.params.get('status', '').split(',')[0]
         alert_time_period_state = request.params.get(
             'alert_time_period_state',
             ''
@@ -108,6 +111,7 @@ class DispatchPlugin(object):
                     timeout
                 )
 
+    # This executes the configured commands
     def execute(self, command, input_data=False, timeout=False):
         request = self.request
 
