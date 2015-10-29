@@ -78,6 +78,8 @@ class DispatchPlugin(object):
         return commands
 
     def run(self):
+        request = self.request
+
         if not self.config.has_section(self.plugin_name):
             self.l.error('Must configure {plugin}'.format(
                 plugin=self.plugin_name
