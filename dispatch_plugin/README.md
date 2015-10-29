@@ -8,6 +8,8 @@ Configure ecs.cfg with a DispatchPlugin section.
 
 In this section each entry starting with command will be used to execute that command, and each entry starting with input will be used as input to stdin of the command. 
 
+You can also specify accompanying timeout entries but timeout is an entry you can actually keep global if you just define it with no suffix. See the example. 
+
 This is sequential so commandNumber5 will use inputNumber5 in the order they were defined. Therefore if you have 4 commands with no input you should define 4 inputs with value False if you want to use a fifth input for a fifth command. 
 
 The following parameters can be used both in command and in input. All but the first one are directly from www.monitorscout.com ECS.
@@ -26,6 +28,11 @@ The following parameters can be used both in command and in input. All but the f
 ## Example
 
     [DispatchPlugin]
+    # Global timeout
+    timeout = 30
+
+    # Command definitions must have matching input definitions, they can use 
+    # any unique suffix but it must match.
     command1 = echo {status}: {device_hostname}
     command2 = echo 2: {status}: {device_hostname}
     command3 = tee /tmp/output
