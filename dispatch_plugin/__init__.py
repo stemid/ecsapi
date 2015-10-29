@@ -86,7 +86,7 @@ class DispatchPlugin(object):
             ))
             raise NotImplementedError
 
-        alert = request.params.get('alert', '')
+        alert = request.params.get('status', '')
         alert_time_period_state = request.params.get(
             'alert_time_period_state',
             ''
