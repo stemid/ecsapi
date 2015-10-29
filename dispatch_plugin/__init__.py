@@ -1,6 +1,8 @@
 # Dispatch alerts to external executables.
 import json
 import subprocess
+import threading
+import errno
 from datetime import datetime
 
 class DispatchPlugin(object):
@@ -12,6 +14,23 @@ class DispatchPlugin(object):
         self.request = kw['request']
         self.plugin_name = self.l.name.lstrip('ecs_')
         self.now = datetime.now()
+
+        # Use global timeout if available
+        if self.config.has_option(self.plugin_name, 'timeout'):
+            self.timeout = self.config.getint(self.plugin_name, 'timeout')
+        else:
+            self.timeout = False
+
+    def _timeout_callback(self, p):
+        if p.poll() is None:
+            try:
+                p.kill()
+                self.l.error('Process {pid} taking too long, killing'.format(
+                    pid=p.pid
+                ))
+            except OSError as e:
+                if e.errno != errno.ESRCH:
+                    raise
 
     def get_commands(self):
         commands = []
@@ -34,9 +53,26 @@ class DispatchPlugin(object):
                 if input_data == 'False':
                     input_data = False
 
+                # If no global timeout is defined, try to find local
+                if self.timeout is False:
+                    try:
+                        local_timeout = self.config.getint(
+                            self.plugin_name,
+                            'timeout{0}'.format(
+                                key.split('command')[-1]
+                            )
+                        )
+                    except Exception as e:
+                        self.l.debug(str(e))
+                        local_timeout = False
+                        pass
+                else:
+                    local_timeout = False
+
                 commands.append({
                     'command': command,
-                    'input': input_data
+                    'input': input_data,
+                    'timeout': local_timeout
                 })
 
         return commands
@@ -48,10 +84,20 @@ class DispatchPlugin(object):
             ))
             raise NotImplementedError
 
+        self.l.debug(self.get_commands())
         for command in self.get_commands():
-            self.execute(command['command'], command['input'])
+            if self.timeout:
+                timeout = self.timeout
+            else:
+                timeout = command['timeout']
 
-    def execute(self, command, input_data=False):
+            self.execute(
+                command['command'],
+                command['input'],
+                timeout
+            )
+
+    def execute(self, command, input_data=False, timeout=False):
         request = self.request
 
         command_args = []
@@ -82,15 +128,20 @@ class DispatchPlugin(object):
         else:
             proc_stdin = None
 
-        self.l.debug('Executing command: {input} | {command}'.format(
-            input=input_data,
-            command=command_args
-        ))
-
-        command = subprocess.Popen(
+        proc = subprocess.Popen(
             command_args,
             stdin=proc_stdin
         )
+
+        self.l.debug('Executed command[{pid}]: {input} | {command}'.format(
+            input=input_data,
+            command=command_args,
+            pid=proc.pid
+        ))
+
+        # Start a thread to create a timeout poller for proc
+        timer = threading.Timer(timeout, self._timeout_callback, [proc])
+        timer.start()
 
         # Handle process input
         if input_data:
@@ -99,7 +150,7 @@ class DispatchPlugin(object):
                 input_lines = json.loads(input_data)
                 input_data = '\n'.join(input_lines)
 
-            (stdout, stderr) = command.communicate(
+            (stdout, stderr) = proc.communicate(
                 input_data.format(
                     now=self.now,
                     alert=request.params.get('alert', ''),
@@ -123,9 +174,12 @@ class DispatchPlugin(object):
                         stderr=stderr
                     )
                 )
-
         else:
-            (stdout, stderr) = command.communicate()
+            (stdout, stderr) = proc.communicate()
+
+        # End the timer thread if it hasn't already
+        timer.cancel()
+        timer.join()
 
         if stderr:
             self.l.error('Error in process communication: {stderr}'.format(
