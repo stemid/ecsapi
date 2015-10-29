@@ -1,6 +1,7 @@
 # Dispatch alerts to external executables.
 import json
 import subprocess
+from datetime import datetime
 
 class DispatchPlugin(object):
     plugin_name = 'DispatchPlugin'
@@ -10,6 +11,7 @@ class DispatchPlugin(object):
         self.config = config
         self.request = kw['request']
         self.plugin_name = self.l.name.lstrip('ecs_')
+        self.now = datetime.now()
 
     def get_commands(self):
         commands = []
@@ -59,6 +61,7 @@ class DispatchPlugin(object):
         for _cmd in _command_args:
             command_args.append(
                 _cmd.format(
+                    time=self.now,
                     alert=request.params.get('alert', ''),
                     status=request.params.get('status', ''),
                     monitor=request.params.get('monitor', ''),
@@ -98,6 +101,8 @@ class DispatchPlugin(object):
 
             (stdout, stderr) = command.communicate(
                 input_data.format(
+                    now=self.now,
+                    alert=request.params.get('alert', ''),
                     status=request.params.get('status', ''),
                     monitor=request.params.get('monitor', ''),
                     organisation=request.params.get('oranisation', ''),

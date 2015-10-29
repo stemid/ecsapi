@@ -10,8 +10,9 @@ In this section each entry starting with command will be used to execute that co
 
 This is sequential so commandNumber5 will use inputNumber5 in the order they were defined. Therefore if you have 4 commands with no input you should define 4 inputs with value False if you want to use a fifth input for a fifth command. 
 
-The following parameters can be used both in command and in input.
+The following parameters can be used both in command and in input. All but the first one are directly from www.monitorscout.com ECS.
 
+  * now - current time when plugin is executed
   * alert - alert ID
   * status - UP, DOWN
   * monitor - monitor ID
