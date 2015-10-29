@@ -25,6 +25,8 @@ The following parameters can be used both in command and in input. All but the f
   * monitor\_name - monitor name
   * monitor\_type - monitor type
 
+Hint: You can also use JSON list syntax in input entries to input multiple lines of data into stdin. The last list member will be followed by EOF. 
+
 ## Example
 
     [DispatchPlugin]
