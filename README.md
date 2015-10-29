@@ -29,8 +29,3 @@ Remove a plugin from this list to disable it, and then run setup.py.
 And reload wsgi server or bottle process.
 
 For testing you can do ``python setup.py develop`` to only build them locally. And restart the bottle dev server. 
-
-# TODO
-
-  * Auto-generate entry\_points for plugins in setup.py
-  * Configurable log-level for both API and plugins
