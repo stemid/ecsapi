@@ -96,7 +96,7 @@ class DispatchPlugin(object):
         )
 
         # Check if alert is in scheduled downtime state
-        if alert == alert_time_period_state and alert == 'DOWN':
+        if alert_time_period_state == 'DOWN':
             self.l.debug('Alert is in a period of downtime')
         else: # Otherwise execute dispatches
             for command in self.get_commands():
