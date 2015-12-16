@@ -118,6 +118,19 @@ class DispatchPlugin(object):
         command_args = []
         _command_args = command.split(' ')
 
+        # Check if relevant values are set
+        if not len(request.params.get('alert', '')):
+            raise StandardError('Must provide alert argument')
+
+        if not len(request.params.get('status', '')):
+            raise StandardError('Must provide status argument')
+
+        if not len(request.params.get('monitor', '')):
+            raise StandardError('Must provide monitor argument')
+
+        if not len(request.params.get('device_hostname', '')):
+            raise StandardError('Must provide device_hostname argument')
+
         # Format command arguments
         for _cmd in _command_args:
             command_args.append(
