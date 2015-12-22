@@ -96,6 +96,7 @@ class DispatchPlugin(object):
         )
 
         # Check if alert is in scheduled downtime state
+        self.l.debug(alert_time_period_state)
         if alert_time_period_state == 'DOWN':
             self.l.debug('Alert is in a period of downtime')
         else: # Otherwise execute dispatches
@@ -119,16 +120,13 @@ class DispatchPlugin(object):
         _command_args = command.split(' ')
 
         # Check if relevant values are set
-        if not len(request.params.get('alert', '')):
-            raise StandardError('Must provide alert argument')
-
         if not len(request.params.get('status', '')):
             raise StandardError('Must provide status argument')
 
         if not len(request.params.get('monitor', '')):
             raise StandardError('Must provide monitor argument')
 
-        if not len(request.params.get('device_hostname', '')):
+        if not len(request.params.get('device', '')):
             raise StandardError('Must provide device_hostname argument')
 
         # Format command arguments
