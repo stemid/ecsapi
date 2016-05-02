@@ -1,6 +1,6 @@
 # Dispatch plugin
 
-Plugin dispatches alert data from ECS to a command. 
+Plugin dispatches alert data from ECS to a command. If available this plugin will attempt a connection to the MS API to get alert users information.
 
 # Configuration
 
