@@ -95,18 +95,10 @@ class DispatchPlugin(object):
             ''
         )
 
-        # Check MS API for alert contact user here.
-        if config.get('ms_api_host'):
-            # TODO: Something like this:
-            # device = server.device.get2(sid, {'id': request.params.get('device')})
-            # dev_contacts = device['entity_data'][device['entity_data'].keys()[0]].get('alert_user_contacts')
-            # user_contact = server.user.contact.get2(sid, {'id': dev_contacts[0]})
-            pass
-
         # Check if alert is in scheduled downtime state
         if alert_time_period_state == 'DOWN':
             self.l.debug('Alert is in a period of downtime')
-        else: # Otherwise execute dispatches
+        else:
             for command in self.get_commands():
                 if self.timeout:
                     timeout = self.timeout
@@ -136,25 +128,26 @@ class DispatchPlugin(object):
         if not len(request.params.get('device', '')):
             raise StandardError('Must provide device_hostname argument')
 
+        # This dict gets passed into command formats and input formats
+        format_data = {
+            'time': self.now,
+            'alert': request.params.get('alert', ''),
+            'status': request.params.get('status', ''),
+            'monitor': request.params.get('monitor', ''),
+            'organisation': request.params.get('organisation', ''),
+            'alert_time_period_state': request.params.get(
+                'alert_time_period_state',
+                ''
+            ),
+            'device': request.params.get('device', ''),
+            'device_hostname': request.params.get('device_hostname', ''),
+            'monitor_name': request.params.get('monitor_name', ''),
+            'monitor_type': request.params.get('monitor_type', '')
+        }
+
         # Format command arguments
         for _cmd in _command_args:
-            command_args.append(
-                _cmd.format(
-                    time=self.now,
-                    alert=request.params.get('alert', ''),
-                    status=request.params.get('status', ''),
-                    monitor=request.params.get('monitor', ''),
-                    organisation=request.params.get('oranisation', ''),
-                    alert_time_period_state=request.params.get(
-                        'alert_time_period_state',
-                        ''
-                    ),
-                    device=request.params.get('device', ''),
-                    device_hostname=request.params.get('device_hostname', ''),
-                    monitor_name=request.params.get('monitor_name', ''),
-                    monitor_type=request.params.get('monitor_type', '')
-                )
-            )
+            command_args.append(_cmd.format(format_data))
 
         if input_data:
             proc_stdin = subprocess.PIPE
@@ -183,23 +176,7 @@ class DispatchPlugin(object):
                 input_lines = json.loads(input_data)
                 input_data = '\n'.join(input_lines)
 
-            (stdout, stderr) = proc.communicate(
-                input_data.format(
-                    now=self.now,
-                    alert=request.params.get('alert', ''),
-                    status=request.params.get('status', ''),
-                    monitor=request.params.get('monitor', ''),
-                    organisation=request.params.get('oranisation', ''),
-                    alert_time_period_state=request.params.get(
-                        'alert_time_period_state',
-                        ''
-                    ),
-                    device=request.params.get('device', ''),
-                    device_hostname=request.params.get('device_hostname', ''),
-                    monitor_name=request.params.get('monitor_name', ''),
-                    monitor_type=request.params.get('monitor_type', '')
-                )
-            )
+            (stdout, stderr) = proc.communicate(input_data.format(format_data))
 
             if stderr:
                 self.l.error(
