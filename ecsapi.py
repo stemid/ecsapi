@@ -43,8 +43,8 @@ if config.get('logging', 'log_handler') == 'syslog':
 else:
     h = RotatingFileHandler(
         config.get('logging', 'log_file'),
-        maxBytes=config.get('logging', 'log_max_bytes'),
-        backupCount=config.get('logging', 'log_max_copies')
+        maxBytes=config.getint('logging', 'log_max_bytes'),
+        backupCount=config.getint('logging', 'log_max_copies')
     )
 h.setFormatter(formatter)
 l.addHandler(h)
