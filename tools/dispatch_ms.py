@@ -161,7 +161,7 @@ def email_alert(recipient, alert={}):
     msg['To'] = recipient
 
     s = SMTP(config.get('DispatchPlugin', 'email_server'))
-    s.send_message(msg)
+    s.sendmail(msg)
     s.quit()
 
 
