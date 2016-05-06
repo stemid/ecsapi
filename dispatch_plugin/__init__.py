@@ -149,7 +149,7 @@ class DispatchPlugin(object):
 
         # Format command arguments
         for _cmd in _command_args:
-            command_args.append(_cmd.format(format_data))
+            command_args.append(_cmd.format(**format_data))
 
         if input_data:
             proc_stdin = subprocess.PIPE
@@ -178,7 +178,7 @@ class DispatchPlugin(object):
                 input_lines = json.loads(input_data)
                 input_data = '\n'.join(input_lines)
 
-            (stdout, stderr) = proc.communicate(input_data.format(format_data))
+            (stdout, stderr) = proc.communicate(input_data.format(**format_data))
 
             if stderr:
                 self.l.error(
