@@ -3,6 +3,8 @@
 # alerts for monitorscout. It works with the MS API to fetch alert contacts
 # from MS and determine how to send the alert.
 
+from __future__ import print_function
+
 from pprint import pprint as pp
 from sys import exit, stderr
 from argparse import ArgumentParser, FileType
@@ -148,7 +150,9 @@ def email_alert(recipient, alert={}):
         '/ Delivered from www.monitorscout.com via Cygatehosting ECS API\n'
     ).format(**alert)
 
-    l.debug('Sending e-mail message')
+    l.debug('Sending e-mail message to {rcpt}'.format(
+        rcpt=recipient
+    ))
 
     msg = MIMEText(email_message)
     msg['Subject'] = config.get('DispatchPlugin', 'email_subject').format(
@@ -202,10 +206,26 @@ except Error as e:
 device_id = args.device
 device_data = server.device.get2(sid, {'id': device_id})
 
+# Exit if alerts are not enabled
+device_alerts_enabled = device_data['entity_data'][
+    list(device_data['entity_data'])[0]
+].get('alerts_enabled', False)
+
+if not device_alerts_enabled:
+    l.debug('{device}: Alerts not enabled, exiting'.format(
+        device=device_id
+    ))
+    exit(0)
+
 # Get the contacts of the first device in the search results
 dev_contacts = device_data['entity_data'][
     list(device_data['entity_data'])[0]
 ].get('alert_user_contacts')
+
+if not len(dev_contacts):
+    # TODO: Get default user contacts
+    l.debug('No contacts found for device')
+    pass
 
 for contact in dev_contacts:
     # Fetch contact JSON data from MS API
@@ -228,10 +248,14 @@ for contact in dev_contacts:
             ))
             continue
 
-        email_alert(
-            c.get('email'),
-            alert_data
-        )
+        try:
+            email_alert(
+                c.get('email'),
+                alert_data
+            )
+        except Exception as e:
+            l.exception('Email alert failed with exception')
+            pass
 
     if c.get('notify_by_pager', False):
         if not c.get('pager_verified', False):
@@ -246,7 +270,11 @@ for contact in dev_contacts:
             ))
             continue
 
-        pager_alert(
-            c.get('pager_number'),
-            alert_data
-        )
+        try:
+            pager_alert(
+                c.get('pager_number'),
+                alert_data
+            )
+        except Exception as e:
+            l.eception('Pager alert failed with exception')
+            pass
