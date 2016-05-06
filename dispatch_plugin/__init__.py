@@ -48,7 +48,7 @@ class DispatchPlugin(object):
                         )
                     )
                 except Exception as e:
-                    self.l.debug(str(e))
+                    self.l.exception('No input data for plugin')
                     input_data = False
                     pass
 
@@ -65,7 +65,7 @@ class DispatchPlugin(object):
                             )
                         )
                     except Exception as e:
-                        self.l.debug(str(e))
+                        self.l.exception('No local timeout for plugin')
                         local_timeout = False
                         pass
                 else:
