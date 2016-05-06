@@ -7,10 +7,10 @@ except ImportError:
     from ConfigParser import RawConfigParser
     pass
 
-from sys import exc_info
 from json import dumps as json_dumps
 from logging import Formatter, getLogger, DEBUG, WARN, INFO
 from logging.handlers import SysLogHandler, RotatingFileHandler
+from logging import exception as log_exception
 
 import pkg_resources
 from bottle import get, post, route, run, default_app, debug, request
@@ -83,12 +83,8 @@ def ecs():
                 request=request
             )
         except Exception as e:
-            exc_type, exc_value, exc_traceback = exc_info()
-            l.error('{plugin} raised {exception} on line {lineno}: {error}'.format(
-                plugin=plugin_name,
-                exception=e.__class__.__name__,
-                lineno=exc_traceback.tb_lineno,
-                error=str(e)
+            log_exception('{plugin} raised exception'.format(
+                plugin=plugin_name
             ))
             continue
 
@@ -96,12 +92,8 @@ def ecs():
         try:
             inst.run()
         except Exception as e:
-            exc_type, exc_value, exc_traceback = exc_info()
-            l.error('{plugin} raised {exception} on line {lineno}: {error}'.format(
-                plugin=plugin_name,
-                exception=e.__class__.__name__,
-                lineno=exc_traceback.tb_lineno,
-                error=str(e)
+            log_exception('{plugin} raised exception'.format(
+                plugin=plugin_name
             ))
             continue
 
