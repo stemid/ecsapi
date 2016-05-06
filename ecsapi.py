@@ -82,9 +82,10 @@ def ecs():
                 request=request
             )
         except Exception as e:
-            l.error('Plugin {plugin} raised exception: {exception}'.format(
+            l.error('Plugin {plugin} raised exception: {exception}: {error}'.format(
                 plugin=plugin_name,
-                exception=str(e)
+                exception=e.__class__.__name__,
+                error=str(e)
             ))
             continue
 
@@ -92,9 +93,10 @@ def ecs():
         try:
             inst.run()
         except Exception as e:
-            l.error('Plugin {plugin} raised exception: {exception}'.format(
+            l.error('Plugin {plugin} raised exception: {exception}: {error}'.format(
                 plugin=plugin_name,
-                exception=str(e)
+                exception=e.__class__.__name__,
+                error=str(e)
             ))
             continue
 
