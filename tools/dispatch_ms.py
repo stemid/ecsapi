@@ -91,7 +91,6 @@ alert_data = {
     'monitor_type': args.monitor_type
 }
 
-# Go through the contacts and send alerts to them
 config = RawConfigParser()
 config.read(['ecs.cfg', 'ecs_local.cfg', '/etc/ecs.cfg'])
 if args.config:
@@ -202,35 +201,71 @@ except Error as e:
     ), file=stderr)
     exit(1)
 
-# Get the device json data from MS
+contacts = []
+
+# Get the device contacts
 device_id = args.device
 device_data = server.device.get2(sid, {'id': device_id})
 
-# Exit if alerts are not enabled
-device_alerts_enabled = device_data['entity_data'][
-    list(device_data['entity_data'])[0]
-].get('alerts_enabled', False)
+if not len(device_data['matches']):
+    l.debug('No such device found')
+else:
+    # Skip if alerts are not enabled
+    device_alerts_enabled = device_data['entity_data'][
+        list(device_data['entity_data'])[0]
+    ].get('alerts_enabled', False)
 
-if not device_alerts_enabled:
-    l.debug('{device}: Alerts not enabled, exiting'.format(
-        device=device_id
-    ))
-    exit(0)
+    if device_alerts_enabled:
+        # Get the contacts of the first device in the search results
+        dev_contacts = device_data['entity_data'][
+            list(device_data['entity_data'])[0]
+        ].get('alert_user_contacts')
 
-# Get the contacts of the first device in the search results
-dev_contacts = device_data['entity_data'][
-    list(device_data['entity_data'])[0]
-].get('alert_user_contacts')
+        if not len(dev_contacts):
+            l.debug('No contacts found for device')
+        else:
+            contacts.extend(dev_contacts)
+    else:
+        l.debug('{device}: Alerts disabled for device, skipping'.format(
+            device=device_id
+        ))
 
-if not len(dev_contacts):
-    # TODO: Get default user contacts
-    l.debug('No contacts found for device')
-    pass
+# Get monitor contacts
+monitor_id = args.monitor
+if args.monitor_type == 'passive_monitor':
+    monitor_data = server.monitor.passive.get2(sid, {'id': monitor_id})
+else:
+    monitor_data = server.monitor.get2(sid, {'id': monitor_id})
 
-for contact in dev_contacts:
+if not len(monitor_data['matches']):
+    l.debug('No such monitor found')
+else:
+    monitor_alerts_enabled = monitor_data['entity_data'][
+        list(monitor_data['entity_data'])[0]
+    ].get('alerts_enabled', False)
+
+    if monitor_alerts_enabled:
+        mon_contacts = monitor_data['entity_data'][
+            list(monitor_data['entity_data'])[0]
+        ].get('alert_user_contacts')
+
+        if not len(mon_contacts):
+            l.debug('No contacts found on monitor')
+        else:
+            contacts.extend(mon_contacts)
+    else:
+        l.debug('{monitor}: Alerts disabled for monitor, skipping'.format(
+            monitor=monitor_id
+        ))
+
+# For all contacts found we attempt to send e-mail and pager messages
+# depending on their settings.
+for contact in contacts:
     # Fetch contact JSON data from MS API
     contact_data = server.user.contact.get2(sid, {'id': contact})
-    c = contact_data['entity_data'][list(contact_data['entity_data'])[0]]
+    c = contact_data['entity_data'][
+        list(contact_data['entity_data'])[0]
+    ]
 
     if not c.get('alerts_enabled', False):
         continue
