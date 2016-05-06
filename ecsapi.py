@@ -10,7 +10,6 @@ except ImportError:
 from json import dumps as json_dumps
 from logging import Formatter, getLogger, DEBUG, WARN, INFO
 from logging.handlers import SysLogHandler, RotatingFileHandler
-from logging import exception as log_exception
 
 import pkg_resources
 from bottle import get, post, route, run, default_app, debug, request
@@ -83,7 +82,7 @@ def ecs():
                 request=request
             )
         except Exception as e:
-            log_exception('{plugin} raised exception'.format(
+            l.exception('{plugin} raised exception'.format(
                 plugin=plugin_name
             ))
             continue
@@ -92,7 +91,7 @@ def ecs():
         try:
             inst.run()
         except Exception as e:
-            log_exception('{plugin} raised exception'.format(
+            l.exception('{plugin} raised exception'.format(
                 plugin=plugin_name
             ))
             continue
