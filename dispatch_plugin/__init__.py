@@ -97,8 +97,8 @@ class DispatchPlugin(object):
 
         # Check if alert is in scheduled downtime state
         if alert_time_period_state == 'DOWN':
-            self.l.debug('{alert}: Skipping alert while in downtime period'.format(
-                alert=request.params.get('alert', '')
+            self.l.debug('Monitor {monitor}: Skipped while in downtime period'.format(
+                monitor=request.params.get('monitor', '')
             ))
         else:
             for command in self.get_commands():
