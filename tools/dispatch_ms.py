@@ -5,13 +5,13 @@
 
 from __future__ import print_function
 
+import threading
+import subprocess
 from pprint import pprint as pp
 from sys import exit, stderr
 from argparse import ArgumentParser, FileType
 from logging import Formatter, getLogger, DEBUG, WARN, INFO
 from logging.handlers import SysLogHandler, RotatingFileHandler
-from smtplib import SMTP
-from email.mime.text import MIMEText
 try:
     from configparser import RawConfigParser
     from xmlrpc.client import ServerProxy, Error
@@ -130,6 +130,48 @@ else:
     l.setLevel(WARN)
 
 
+# Timeout callback helper function
+def _timeout_callback(self, p):
+    if p.poll() is None:
+        try:
+            p.kill()
+            l.error('Process {pid} taking too long, killed'.format(
+                pid=p.pid
+            ))
+        except OSError as e:
+            if e.errno != errno.ESRCH:
+                raise
+
+
+# Execute alert command
+def alert_command(command, input_data):
+    proc_stdin = subprocess.PIPE
+
+    proc = subprocess.Popen(
+        command,
+        stdin=proc_stdin
+    )
+
+    timer = threading.Timer(
+        config.get('DispatchPlugin', 'timeout'),
+        self._timeout_callback,
+        [proc]
+    )
+    timer.start()
+
+    (stdout, stderr) = proc.communicate(input_data)
+
+    if stderr:
+        l.error('Alert command error: {error}'.format(
+            error=stderr
+        ))
+
+    timer.cancel()
+    timer.join()
+
+    return stdout
+
+
 # Send an E-mail alert
 def email_alert(recipient, alert={}):
     email_message = (
@@ -153,20 +195,19 @@ def email_alert(recipient, alert={}):
         rcpt=recipient
     ))
 
-    msg = MIMEText(email_message)
-    msg['Subject'] = config.get('DispatchPlugin', 'email_subject').format(
+    alert['subject'] = config.get('DispatchPlugin', 'email_subject').format(
         **alert
     )
-    msg['From'] = config.get('DispatchPlugin', 'email_from')
-    msg['To'] = recipient
 
-    s = SMTP(config.get('DispatchPlugin', 'email_server'))
-    s.sendmail(
-        config.get('DispatchPlugin', 'email_from'),
-        [recipient],
-        msg.as_string()
-    )
-    s.quit()
+    alert['email'] = recipient
+    alert['from'] = config.get('DispatchPlugin', 'email_from')
+    alert['return_path'] = config.get('DispatchPlugin', 'email_return_path')
+    alert['reply_to'] = config.get('DispatchPlugin', 'reply_to')
+    command = config.get('DispatchPlugin', 'email_cmd').format(**alert)
+    stdout = alert_command(command, email_message)
+    l.debug('Command finished: {stdout}'.format(
+        stdout=stdout
+    ))
 
 
 # Send pager alert
@@ -181,6 +222,13 @@ def pager_alert(recipient, alert={}):
     ).format(**alert)
 
     l.debug('Sendig pager message')
+
+    alert['pager'] = recipient
+    command = config.get('pager_cmd').format(**alert)
+    stdout = alert_command(command, pager_message)
+    l.debug('Command finished: {stdout}'.format(
+        stdout=stdout
+    ))
 
 
 if not config.get('DispatchPlugin', 'ms_api_host'):
