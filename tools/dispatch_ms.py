@@ -353,7 +353,7 @@ else:
 
 # For all contacts found we attempt to send e-mail and pager messages
 # depending on their settings.
-for contact in contacts:
+for contact in sorted(set(contacts))
     # Fetch contact JSON data from MS API
     contact_data = server.user.contact.get2(sid, {'id': contact})
 
