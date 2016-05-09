@@ -204,7 +204,7 @@ def email_alert(recipient, alert={}):
     alert['return_path'] = config.get('DispatchPlugin', 'email_return_path')
     alert['reply_to'] = config.get('DispatchPlugin', 'email_reply_to')
 
-    command = config.get('DispatchPlugin', 'email_cmd').format(**alert)
+    command = config.get('DispatchPlugin', 'email_cmd')
     cmd_args = []
     for _cmd in command.split(' '):
         cmd_args.append(_cmd.format(**alert))
@@ -233,7 +233,7 @@ def pager_alert(recipient, alert={}):
 
     alert['pager'] = recipient
 
-    command = config.get('DispatchPlugin', 'pager_cmd').format(**alert)
+    command = config.get('DispatchPlugin', 'pager_cmd')
     cmd_args = []
     for _cmd in command.split(' '):
         cmd_args.append(_cmd.format(**alert))
