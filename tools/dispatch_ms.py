@@ -209,6 +209,9 @@ def email_alert(recipient, alert={}):
     for _cmd in command.split(' '):
         cmd_args.append(_cmd.format(**alert))
 
+    l.debug('Executing email command: {cmd}'.format(
+        cmd=cmd_args
+    ))
     stdout = alert_command(cmd_args, email_message)
     l.debug('Command finished: {stdout}'.format(
         stdout=stdout
@@ -235,6 +238,9 @@ def pager_alert(recipient, alert={}):
     for _cmd in command.split(' '):
         cmd_args.append(_cmd.format(**alert))
 
+    l.debug('Executing pager command: {cmd}'.format(
+        cmd=cmd_args
+    ))
     stdout = alert_command(cmd_args, pager_message)
     l.debug('Command finished: {stdout}'.format(
         stdout=stdout
