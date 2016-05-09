@@ -406,7 +406,7 @@ for contact in sorted(set(contacts)):
             ))
             continue
 
-        if not c.get('pager', False):
+        if not c.get('pager_number', False):
             l.debug('{contact}: Pager not present'.format(
                 contact=c.get('id', 'N/A')
             ))
