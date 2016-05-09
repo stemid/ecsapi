@@ -131,7 +131,7 @@ else:
 
 
 # Timeout callback helper function
-def _timeout_callback(self, p):
+def timeout_callback(self, p):
     if p.poll() is None:
         try:
             p.kill()
@@ -154,7 +154,7 @@ def alert_command(command, input_data):
 
     timer = threading.Timer(
         config.get('DispatchPlugin', 'timeout'),
-        self._timeout_callback,
+        timeout_callback,
         [proc]
     )
     timer.start()
