@@ -144,7 +144,7 @@ def _timeout_callback(self, p):
 
 
 # Execute alert command
-def alert_command(command=[], input_data):
+def alert_command(command, input_data):
     proc_stdin = subprocess.PIPE
 
     proc = subprocess.Popen(
