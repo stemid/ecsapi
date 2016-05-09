@@ -358,8 +358,8 @@ for contact in contacts:
     contact_data = server.user.contact.get2(sid, {'id': contact})
 
     if not len(contact_data['matches']):
-        l.debug('{device}: No contacts found for device'.format(
-            device=device_id
+        l.debug('{contact}: No such contact found'.format(
+            contact=contact
         ))
         continue
     c = contact_data['entity_data'][
