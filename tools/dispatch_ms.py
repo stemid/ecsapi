@@ -363,5 +363,5 @@ for contact in contacts:
                 alert_data
             )
         except Exception as e:
-            l.eception('Pager alert failed with exception')
+            l.exception('Pager alert failed with exception')
             pass
