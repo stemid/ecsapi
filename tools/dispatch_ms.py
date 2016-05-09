@@ -202,7 +202,7 @@ def email_alert(recipient, alert={}):
     alert['email'] = recipient
     alert['from'] = config.get('DispatchPlugin', 'email_from')
     alert['return_path'] = config.get('DispatchPlugin', 'email_return_path')
-    alert['reply_to'] = config.get('DispatchPlugin', 'reply_to')
+    alert['reply_to'] = config.get('DispatchPlugin', 'email_reply_to')
     command = config.get('DispatchPlugin', 'email_cmd').format(**alert)
     stdout = alert_command(command, email_message)
     l.debug('Command finished: {stdout}'.format(
