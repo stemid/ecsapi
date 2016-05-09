@@ -361,7 +361,15 @@ for contact in sorted(set(contacts)):
         l.debug('{contact}: No such contact found'.format(
             contact=contact
         ))
+
+    contact_data = server.user.get2(sid, {'id': contact})
+
+    if not len(contact_data['matches']):
+        l.debug('{contact}: No such user found'.format(
+            contact=contact
+        ))
         continue
+
     c = contact_data['entity_data'][
         list(contact_data['entity_data'])[0]
     ]
