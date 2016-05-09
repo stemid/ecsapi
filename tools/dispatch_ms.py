@@ -290,13 +290,27 @@ else:
         ].get('alert_user_contacts')
 
         if not len(dev_contacts):
-            l.debug('No contacts found for device')
+            l.debug('{device}: No contacts found for device'.format(
+                device=device_id
+            ))
         else:
             contacts.extend(dev_contacts)
+
+        dev_users = device_data['entity_data'][
+            list(device_data['entity_data'])[0]
+        ].get('alert_users')
+
+        if not len(dev_users):
+            l.debug('{device}: No users found for device'.format(
+                device=device_id
+            ))
+        else:
+            contacts.extend(dev_users)
     else:
         l.debug('{device}: Alerts disabled for device, skipping'.format(
             device=device_id
         ))
+
 
 # Get monitor contacts
 monitor_id = args.monitor
@@ -321,6 +335,17 @@ else:
             l.debug('No contacts found on monitor')
         else:
             contacts.extend(mon_contacts)
+
+        mon_users = monitor_data['entity_data'][
+            list(monitor_data['entity_data'])[0]
+        ].get('alert_users')
+
+        if not len(mon_users):
+            l.debug('{monitor}: No users found on monitor'.format(
+                monitor=monitor_id
+            ))
+        else:
+            contacts.extend(mon_users)
     else:
         l.debug('{monitor}: Alerts disabled for monitor, skipping'.format(
             monitor=monitor_id
@@ -331,6 +356,12 @@ else:
 for contact in contacts:
     # Fetch contact JSON data from MS API
     contact_data = server.user.contact.get2(sid, {'id': contact})
+
+    if not len(contact_data['matches']):
+        l.debug('{device}: No contacts found for device'.format(
+            device=device_id
+        ))
+        continue
     c = contact_data['entity_data'][
         list(contact_data['entity_data'])[0]
     ]
