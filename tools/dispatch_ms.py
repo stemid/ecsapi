@@ -144,7 +144,7 @@ def _timeout_callback(self, p):
 
 
 # Execute alert command
-def alert_command(command, input_data):
+def alert_command(command=[], input_data):
     proc_stdin = subprocess.PIPE
 
     proc = subprocess.Popen(
@@ -203,8 +203,13 @@ def email_alert(recipient, alert={}):
     alert['from'] = config.get('DispatchPlugin', 'email_from')
     alert['return_path'] = config.get('DispatchPlugin', 'email_return_path')
     alert['reply_to'] = config.get('DispatchPlugin', 'email_reply_to')
+
     command = config.get('DispatchPlugin', 'email_cmd').format(**alert)
-    stdout = alert_command(command, email_message)
+    cmd_args = []
+    for _cmd in command.split(' '):
+        cmd_args.append(_cmd.format(**alert))
+
+    stdout = alert_command(cmd_args, email_message)
     l.debug('Command finished: {stdout}'.format(
         stdout=stdout
     ))
@@ -221,11 +226,16 @@ def pager_alert(recipient, alert={}):
         'Time: {time}\n'
     ).format(**alert)
 
-    l.debug('Sendig pager message')
+    l.debug('Sending pager message')
 
     alert['pager'] = recipient
-    command = config.get('pager_cmd').format(**alert)
-    stdout = alert_command(command, pager_message)
+
+    command = config.get('DispatchPlugin', 'pager_cmd').format(**alert)
+    cmd_args = []
+    for _cmd in command.split(' '):
+        cmd_args.append(_cmd.format(**alert))
+
+    stdout = alert_command(cmd_args, pager_message)
     l.debug('Command finished: {stdout}'.format(
         stdout=stdout
     ))
