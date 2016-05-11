@@ -153,7 +153,7 @@ def alert_command(command, input_data):
     )
 
     timer = threading.Timer(
-        config.get('DispatchPlugin', 'timeout'),
+        config.getint('DispatchPlugin', 'timeout'),
         timeout_callback,
         [proc]
     )
