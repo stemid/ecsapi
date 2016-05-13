@@ -279,16 +279,12 @@ device_data = server.device.r_get2(sid, {'id': device_id})
 if not len(device_data['matches']):
     l.debug('No such device found')
 else:
-    # Skip if alerts are not enabled
-    device_alerts_enabled = device_data['entity_data'][
-        list(device_data['entity_data'])[0]
-    ].get('alerts_enabled', False)
+    device = device_data['entity_data'][device_data['matches'][0]]
+    device_alerts_enabled = device.get('alerts_enabled')
 
     if device_alerts_enabled:
         # Get the contacts of the first device in the search results
-        dev_contacts = device_data['entity_data'][
-            list(device_data['entity_data'])[0]
-        ].get('alert_user_contacts')
+        dev_contacts = device.get('alert_user_contacts')
 
         if not len(dev_contacts):
             l.debug('{device}: No contacts found for device'.format(
@@ -297,9 +293,7 @@ else:
         else:
             contacts.extend(dev_contacts)
 
-        dev_users = device_data['entity_data'][
-            list(device_data['entity_data'])[0]
-        ].get('alert_users')
+        dev_users = device.get('alert_users')
 
         if not len(dev_users):
             l.debug('{device}: No users found for device'.format(
@@ -323,23 +317,18 @@ else:
 if not len(monitor_data['matches']):
     l.debug('No such monitor found')
 else:
-    monitor_alerts_enabled = monitor_data['entity_data'][
-        list(monitor_data['entity_data'])[0]
-    ].get('alerts_enabled', False)
+    monitor = monitor_data['entity_data'][monitor_data['matches'][0]]
+    monitor_alerts_enabled = monitor.get('alerts_enabled')
 
     if monitor_alerts_enabled:
-        mon_contacts = monitor_data['entity_data'][
-            list(monitor_data['entity_data'])[0]
-        ].get('alert_user_contacts')
+        mon_contacts = monitor.get('alert_user_contacts')
 
         if not len(mon_contacts):
             l.debug('No contacts found on monitor')
         else:
             contacts.extend(mon_contacts)
 
-        mon_users = monitor_data['entity_data'][
-            list(monitor_data['entity_data'])[0]
-        ].get('alert_users')
+        mon_users = monitor.get('alert_users')
 
         if not len(mon_users):
             l.debug('{monitor}: No users found on monitor'.format(
@@ -354,7 +343,12 @@ else:
 
 # For all contacts found we attempt to send e-mail and pager messages
 # depending on their settings.
-for contact in sorted(set(contacts)):
+sorted_contacts = sorted(set(contacts))
+l.debug('Processing contacts: {contacts}'.format(
+    contacts=sorted_contacts
+))
+
+for contact in sorted_contacts:
     # Fetch contact JSON data from MS API
     contact_data = server.user.contact.r_get2(sid, {'id': contact})
 
@@ -371,50 +365,46 @@ for contact in sorted(set(contacts)):
         ))
         continue
 
-    c = contact_data['entity_data'][
-        list(contact_data['entity_data'])[0]
-    ]
+    c = contact_data['entity_data'][contact_data['matches'][0]]
 
     if c.get('notify_by_email', False):
         if not c.get('email_verified', False):
             l.debug('{contact}: Email not verified'.format(
-                contact=c.get('id', 'N/A')
+                contact=c.get('email', c.get('id'))
             ))
-            continue
 
         if not c.get('email', False):
             l.debug('{contact}: Email not present'.format(
-                contact=c.get('id', 'N/A')
+                contact=c.get('id')
             ))
-            continue
 
-        try:
-            email_alert(
-                c.get('email'),
-                alert_data
-            )
-        except Exception as e:
-            l.exception('Email alert failed with exception')
-            pass
+        if c.get('email_verified') and c.get('email'):
+            try:
+                email_alert(
+                    c.get('email'),
+                    alert_data
+                )
+            except Exception as e:
+                l.exception('Email alert failed with exception')
+                pass
 
     if c.get('notify_by_pager', False):
         if not c.get('pager_verified', False):
             l.debug('{contact}: Pager not verified'.format(
-                contact=c.get('id', 'N/A')
+                contact=c.get('pager', c.get('id'))
             ))
-            continue
 
         if not c.get('pager_number', False):
             l.debug('{contact}: Pager not present'.format(
-                contact=c.get('id', 'N/A')
+                contact=c.get('id')
             ))
-            continue
 
-        try:
-            pager_alert(
-                c.get('pager_number'),
-                alert_data
-            )
-        except Exception as e:
-            l.exception('Pager alert failed with exception')
-            pass
+        if c.get('pager_verified') and c.get('pager'):
+            try:
+                pager_alert(
+                    c.get('pager_number'),
+                    alert_data
+                )
+            except Exception as e:
+                l.exception('Pager alert failed with exception')
+                pass
