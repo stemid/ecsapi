@@ -186,7 +186,7 @@ def email_alert(recipient, alert={}):
         '\n'
         'Device: https://monitorscout.com/device/{device}\n'
         'Monitor: https://monitorscout.com/monitor/{device}/{monitor_type}/{monitor}\n'
-        'Acknowledge alert: http://monitorscout.com/alert/unhandled/{monitor_type}_alert/{monitor}/\n'
+        'Acknowledge alert: https://monitorscout.com/alert/unhandled/{monitor_type}_alert/{monitor}/\n'
         '\n'
         '/ Delivered from www.monitorscout.com via Cygatehosting ECS API\n'
     ).format(**alert)
@@ -261,7 +261,8 @@ try:
     # Get a session ID
     sid = server.login(
         config.get('DispatchPlugin', 'ms_api_username'),
-        config.get('DispatchPlugin', 'ms_api_password')
+        config.get('DispatchPlugin', 'ms_api_password'),
+        config.get('DispatchPlugin', 'ms_api_account')
     )
 except Error as e:
     print('Connection to MS API failed: {error}'.format(
@@ -273,7 +274,7 @@ contacts = []
 
 # Get the device contacts
 device_id = args.device
-device_data = server.device.get2(sid, {'id': device_id})
+device_data = server.device.r_get2(sid, {'id': device_id})
 
 if not len(device_data['matches']):
     l.debug('No such device found')
@@ -315,9 +316,9 @@ else:
 # Get monitor contacts
 monitor_id = args.monitor
 if args.monitor_type == 'passive_monitor':
-    monitor_data = server.monitor.passive.get2(sid, {'id': monitor_id})
+    monitor_data = server.monitor.passive.r_get2(sid, {'id': monitor_id})
 else:
-    monitor_data = server.monitor.get2(sid, {'id': monitor_id})
+    monitor_data = server.monitor.r_get2(sid, {'id': monitor_id})
 
 if not len(monitor_data['matches']):
     l.debug('No such monitor found')
@@ -355,14 +356,14 @@ else:
 # depending on their settings.
 for contact in sorted(set(contacts)):
     # Fetch contact JSON data from MS API
-    contact_data = server.user.contact.get2(sid, {'id': contact})
+    contact_data = server.user.contact.r_get2(sid, {'id': contact})
 
     if not len(contact_data['matches']):
         l.debug('{contact}: No such contact found'.format(
             contact=contact
         ))
 
-    contact_data = server.user.get2(sid, {'id': contact})
+    contact_data = server.user.r_get2(sid, {'id': contact})
 
     if not len(contact_data['matches']):
         l.debug('{contact}: No such user found'.format(
@@ -373,9 +374,6 @@ for contact in sorted(set(contacts)):
     c = contact_data['entity_data'][
         list(contact_data['entity_data'])[0]
     ]
-
-    if not c.get('alerts_enabled', False):
-        continue
 
     if c.get('notify_by_email', False):
         if not c.get('email_verified', False):
