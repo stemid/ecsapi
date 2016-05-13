@@ -357,7 +357,7 @@ for contact in sorted_contacts:
             contact=contact
         ))
 
-    contact_data = server.user.r_get2(sid, {'id': contact})
+        contact_data = server.user.r_get2(sid, {'id': contact})
 
     if not len(contact_data['matches']):
         l.debug('{contact}: No such user found'.format(
