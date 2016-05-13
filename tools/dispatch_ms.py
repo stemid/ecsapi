@@ -341,13 +341,14 @@ else:
             monitor=monitor_id
         ))
 
-# For all contacts found we attempt to send e-mail and pager messages
-# depending on their settings.
+# Sort the found contacts so we have unique ID values.
 sorted_contacts = sorted(set(contacts))
 l.debug('Processing contacts: {contacts}'.format(
     contacts=sorted_contacts
 ))
 
+# For all contacts found we attempt to send e-mail and pager messages
+# depending on their settings.
 for contact in sorted_contacts:
     # Fetch contact JSON data from MS API
     contact_data = server.user.contact.r_get2(sid, {'id': contact})
