@@ -391,7 +391,7 @@ for contact in sorted_contacts:
     if c.get('notify_by_pager', False):
         if not c.get('pager_verified', False):
             l.debug('{contact}: Pager not verified'.format(
-                contact=c.get('pager', c.get('id'))
+                contact=c.get('pager_number', c.get('id'))
             ))
 
         if not c.get('pager_number', False):
@@ -399,7 +399,7 @@ for contact in sorted_contacts:
                 contact=c.get('id')
             ))
 
-        if c.get('pager_verified') and c.get('pager'):
+        if c.get('pager_verified') and c.get('pager_number'):
             try:
                 pager_alert(
                     c.get('pager_number'),
