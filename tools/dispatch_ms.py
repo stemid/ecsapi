@@ -181,6 +181,7 @@ def email_alert(recipient, alert={}):
         'Monitor name: {monitor_name}\n'
         'State: {status}\n'
         'Time: {time}\n'
+        'Error: {error_msg}\n'
         '\n'
         'Alert Time Period State: {alert_time_period_state}\n'
         '\n'
@@ -227,6 +228,7 @@ def pager_alert(recipient, alert={}):
         'Monitor name: {monitor_name}\n'
         'State: {status}\n'
         'Time: {time}\n'
+        'Error: {error_msg}\n'
     ).format(**alert)
 
     l.debug('Sending pager message')
@@ -270,6 +272,25 @@ except Error as e:
     ), file=stderr)
     exit(1)
 
+# Get the alert data
+_alert = None
+if args.monitor_type == 'monitor':
+    _alert = server.monitor.r_get_alerts(sid, args.alert, '')
+elif args.monitor_type == 'passive_monitor':
+    _alert = server.monitor.passive.r_get_alerts(sid, args.alert, '')
+elif args.monitor_type == 'process_monitor':
+    _alert = server.device.process.monitor.r_get_alerts(sid, args.alert, '')
+elif args.monitor_type == 'metric_monitor':
+    _alert = server.metric.monitor.r_get_alerts(sid, args.alert, '')
+
+# Add the error_msg to our own dict of alert_data
+if _alert:
+    _alert_data = _alert['entity_data'].get(args.alert)
+    alert_data['error_msg'] = _alert_data['error_msg']
+
+
+# Contact handling code, handles stuff like if contacts should receive alerts
+# and what type of alerts they should receive.
 contacts = []
 
 # Get the device contacts
