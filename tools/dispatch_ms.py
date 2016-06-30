@@ -192,6 +192,12 @@ def email_alert(recipient, alert={}):
         '/ Delivered from www.monitorscout.com via Cygatehosting ECS API\n'
     ).format(**alert)
 
+    if alert.get('error_msg', None):
+        email_message += (
+            '\nP.S\n'
+            'Error: {error_msg}\n'
+        ).format(**alert)
+
     l.debug('Sending e-mail message to {rcpt}'.format(
         rcpt=recipient
     ))
@@ -229,6 +235,11 @@ def pager_alert(recipient, alert={}):
         'State: {status}\n'
         'Time: {time}\n'
     ).format(**alert)
+
+    if alert.get('error_msg', None):
+        email_message += (
+            'Error: {error_msg}\n'
+        ).format(**alert)
 
     l.debug('Sending pager message')
 
