@@ -178,23 +178,22 @@ def email_alert(recipient, alert={}):
     email_message = (
         'Alert from www.monitorscout.com\n'
         '\n'
-        'Device name: {device_hostname}\n'
-        'Monitor name: {monitor_name}\n'
-        'State: {status}\n'
-        'Time: {time}\n'
-        '\n'
-        'Alert Time Period State: {alert_time_period_state}\n'
+        'Delivered from www.monitorscout.com via Cygatehosting ECS API\n'
         '\n'
         'Device: https://monitorscout.com/device/{device}\n'
         'Monitor: https://monitorscout.com/monitor/{device}/{monitor_type}/{monitor}\n'
         'Acknowledge alert: https://monitorscout.com/alert/unhandled/{monitor_type}_alert/{monitor}/\n'
         '\n'
-        '/ Delivered from www.monitorscout.com via Cygatehosting ECS API\n'
+        'Alert Time Period State: {alert_time_period_state}\n'
+        '\n'
+        'Device name: {device_hostname}\n'
+        'Monitor name: {monitor_name}\n'
+        'State: {status}\n'
+        'Time: {time}\n'
     ).format(**alert)
 
     if alert.get('error_msg', None):
         email_message += (
-            '\nP.S\n'
             'Error: {error_msg}\n'
         ).format(**alert)
 
@@ -286,13 +285,13 @@ except Error as e:
 if len(args.alert):
     _alert = None
     if args.monitor_type == 'monitor':
-        _alert = server.monitor.r_get_alerts(sid, args.alert, '')
+        _alert = server.monitor.r_get_alerts(sid, args.monitor, '')
     elif args.monitor_type == 'passive_monitor':
-        _alert = server.monitor.passive.r_get_alerts(sid, args.alert, '')
+        _alert = server.monitor.passive.r_get_alerts(sid, args.monitor, '')
     elif args.monitor_type == 'process_monitor':
-        _alert = server.device.process.monitor.r_get_alerts(sid, args.alert, '')
+        _alert = server.device.process.monitor.r_get_alerts(sid, args.monitor, '')
     elif args.monitor_type == 'metric_monitor':
-        _alert = server.metric.monitor.r_get_alerts(sid, args.alert, '')
+        _alert = server.metric.monitor.r_get_alerts(sid, args.monitor, '')
 
     # Add the error_msg to our own dict of alert_data
     if _alert:
