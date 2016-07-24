@@ -236,7 +236,7 @@ def pager_alert(recipient, alert={}):
     ).format(**alert)
 
     if alert.get('error_msg', None):
-        email_message += (
+        pager_message += (
             'Error: {error_msg}\n'
         ).format(**alert)
 
